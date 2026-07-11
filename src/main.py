@@ -3,7 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
-import os
+import os, json, time
+from datetime import datetime
 
 from src.config import settings
 from src.database import get_db, engine, Base, APIKey, RequestLog
@@ -229,6 +230,73 @@ async def delete_provider(provider_id: str, user=Depends(verify_token)):
             return {"message": "Provider deleted"}
     raise HTTPException(404, "Provider not found")
 
+
+# ==================== Routes (FlatKey) ====================
+_ROUTES_STORE = []
+_ROUTES_PATH = None
+
+def _routes_db():
+    global _ROUTES_STORE, _ROUTES_PATH
+    if _ROUTES_STORE:
+        return _ROUTES_STORE
+    try:
+        _ROUTES_PATH = os.path.join(settings.DATABASE_DIR, "routes.json")
+        if os.path.exists(_ROUTES_PATH):
+            with open(_ROUTES_PATH) as f:
+                _ROUTES_STORE = json.load(f)
+    except Exception:
+        pass
+    return _ROUTES_STORE
+
+def _save_routes():
+    try:
+        with open(_ROUTES_PATH, "w") as f:
+            json.dump(_ROUTES_STORE, f, indent=2)
+    except Exception:
+        pass
+
+@app.get("/api/routes")
+async def list_routes():
+    return _routes_db()
+
+@app.post("/api/routes")
+async def create_route(body: dict, user=Depends(verify_token)):
+    routes = _routes_db()
+    route = {
+        "id": "r_" + str(int(time.time() * 1000)),
+        "name": body.get("name", ""),
+        "path": body.get("path", "/"),
+        "method": body.get("method", "POST"),
+        "provider": body.get("provider", ""),
+        "key": body.get("key", ""),
+        "isActive": True,
+        "createdAt": datetime.utcnow().isoformat()
+    }
+    routes.append(route)
+    _save_routes()
+    return route
+
+@app.patch("/api/routes/{route_id}")
+async def update_route(route_id: str, body: dict, user=Depends(verify_token)):
+    routes = _routes_db()
+    for r in routes:
+        if r["id"] == route_id:
+            for key in ["name", "path", "method", "provider", "key", "isActive"]:
+                if key in body:
+                    r[key] = body[key]
+            _save_routes()
+            return r
+    raise HTTPException(404, "Route not found")
+
+@app.delete("/api/routes/{route_id}")
+async def delete_route(route_id: str, user=Depends(verify_token)):
+    routes = _routes_db()
+    for i, r in enumerate(routes):
+        if r["id"] == route_id:
+            routes.pop(i)
+            _save_routes()
+            return {"message": "Route deleted"}
+    raise HTTPException(404, "Route not found")
 
 # ==================== Logs ====================
 @app.get("/api/logs")

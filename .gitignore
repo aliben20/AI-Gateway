@@ -6,3 +6,5 @@ gateway.db
 gateway.log
 test_gateway.db
 .pytest_cache/
+
+routes.json

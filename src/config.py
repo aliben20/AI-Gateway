@@ -29,6 +29,11 @@ class Settings(BaseSettings):
     LOG_LEVEL: str = "INFO"
     LOG_FILE: str = "gateway.log"
 
+    @property
+    def DATABASE_DIR(self) -> str:
+        db_url = self.DATABASE_URL.replace("sqlite:///", "")
+        return os.path.dirname(db_url) or "/tmp"
+
     model_config = {"env_file": ".env"}
 
 settings = Settings()
