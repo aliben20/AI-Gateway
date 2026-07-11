@@ -1,0 +1,6 @@
+[tool.vercel]
+entrypoint = "src/main.py"
+
+[tool.vercel.routes]
+src = "/(.*)"
+dest = "src/main.py"

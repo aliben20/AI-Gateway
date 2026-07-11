@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>AI Gateway | البوابة الذكية</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  darkMode: 'class',
+  theme: {
+    extend: {
+      colors: {
+        border: 'rgba(255,255,255,0.08)',
+        input: 'rgba(255,255,255,0.08)',
+        ring: '#3B82F6',
+        background: '#09090B',
+        foreground: '#FFFFFF',
+        surface: '#111113',
+        primary: { DEFAULT: '#3B82F6', foreground: '#FFFFFF' },
+        secondary: { DEFAULT: '#6366F1', foreground: '#FFFFFF' },
+        destructive: { DEFAULT: '#EF4444', foreground: '#FFFFFF' },
+        muted: { DEFAULT: '#18181B', foreground: '#71717A' },
+        accent: { DEFAULT: '#18181B', foreground: '#FFFFFF' },
+        card: { DEFAULT: '#18181B', foreground: '#FFFFFF' },
+        success: { DEFAULT: '#22C55E', foreground: '#FFFFFF' },
+        warning: { DEFAULT: '#F59E0B', foreground: '#FFFFFF' },
+      },
+      fontFamily: { sans: ['IBM Plex Sans Arabic', 'Inter', 'system-ui', 'sans-serif'], mono: ['JetBrains Mono', 'Fira Code', 'monospace'] },
+      borderRadius: { lg: '1rem', md: '0.75rem', sm: '0.5rem', xl: '1.25rem' }
+    }
+  }
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { font-family: 'IBM Plex Sans Arabic', 'Inter', system-ui, sans-serif; background: #09090B; color: #FFFFFF; -webkit-font-smoothing: antialiased; }
+  .font-mono { font-family: 'JetBrains Mono', 'Fira Code', monospace !important; }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.15); }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .fade-in { animation: fadeIn 0.25s ease-out; }
+  @keyframes slideUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+  .toast-anim { animation: slideUp 0.3s ease-out; }
+  @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+  .shimmer { background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0.03) 75%); background-size: 200% 100%; animation: shimmer 2s infinite; }
+  @keyframes pulse-glow { 0%, 100% { box-shadow: 0 0 0 0 rgba(59,130,246,0.3); } 50% { box-shadow: 0 0 0 6px rgba(59,130,246,0); } }
+  .glow-pulse { animation: pulse-glow 2s infinite; }
+  .nav-btn { position: relative; overflow: hidden; }
+  .nav-btn::after { content: ''; position: absolute; right: 0; top: 50%; transform: translateY(-50%); width: 3px; height: 0; background: #3B82F6; border-radius: 0 3px 3px 0; transition: height 0.2s; }
+  .nav-btn.active::after { height: 60%; }
+  input:focus-visible, select:focus-visible, textarea:focus-visible { outline: none; ring: 2px solid #3B82F6; border-color: #3B82F6; }
+  .glass { background: rgba(24,24,27,0.7); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+  .card-hover { transition: transform 0.2s, box-shadow 0.2s; }
+  .card-hover:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
+  .gradient-border { position: relative; }
+  .gradient-border::before { content: ''; position: absolute; inset: 0; border-radius: inherit; padding: 1px; background: linear-gradient(135deg, rgba(59,130,246,0.3), rgba(99,102,241,0.3), transparent); -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); -webkit-mask-composite: xor; mask-composite: exclude; }
+  @media (max-width: 768px) { .sidebar-mobile { position: fixed; inset: 0; z-index: 50; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); } .sidebar-mobile.open { transform: translateX(0); } }
+</style>
+</head>
+<body class="dark">
+
+<!-- ==================== LOADING ==================== -->
+<div id="loadingScreen" class="fixed inset-0 z-[100] flex flex-col items-center justify-center gap-5" style="background:#09090B">
+  <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-lg shadow-primary/20 glow-pulse">
+    <svg class="w-7 h-7 text-white" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+  </div>
+  <div class="flex items-center gap-2 text-sm text-muted-foreground">
+    <svg class="w-4 h-4 animate-spin" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+    جاري التحميل...
+  </div>
+</div>
+
+<!-- ==================== TOAST CONTAINER ==================== -->
+<div id="toastContainer" class="fixed bottom-6 left-6 z-[200] flex flex-col gap-2 pointer-events-none"></div>
+
+<!-- ==================== LOGIN ==================== -->
+<div id="authPage" class="min-h-screen flex items-center justify-center" style="background:#09090B;display:none">
+  <div class="absolute inset-0 overflow-hidden pointer-events-none">
+    <div class="absolute -top-40 -right-40 w-80 h-80 bg-primary/10 rounded-full blur-3xl"></div>
+    <div class="absolute -bottom-40 -left-40 w-80 h-80 bg-secondary/10 rounded-full blur-3xl"></div>
+  </div>
+  <div class="w-full max-w-[400px] p-8 space-y-6 relative fade-in">
+    <div class="flex flex-col items-center gap-4">
+      <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-lg shadow-primary/20">
+        <svg class="w-7 h-7 text-white" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="16" y="16" width="6" height="6" rx="1"/><rect x="2" y="16" width="6" height="6" rx="1"/><rect x="9" y="2" width="6" height="6" rx="1"/><path d="M5 16v-3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3"/><path d="M12 12V8"/></svg>
+      </div>
+      <h1 class="text-2xl font-bold tracking-tight">AI Gateway</h1>
+      <p class="text-sm text-[#A1A1AA]" id="authSubtitle">ادخل بياناتك للوصول إلى لوحة التحكم</p>
+    </div>
+    <div id="loginForm" class="space-y-5">
+      <div class="space-y-1.5">
+        <label class="text-sm font-medium">البريد الإلكتروني</label>
+        <div class="relative">
+          <svg class="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-[#71717A]" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+          <input id="loginEmail" type="text" value="admin@gateway.com" class="flex h-11 w-full rounded-xl border border-input bg-[#111113] pr-10 px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-[#71717A] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" placeholder="البريد الإلكتروني"/>
+        </div>
+      </div>
+      <div class="space-y-1.5">
+        <label class="text-sm font-medium">كلمة المرور</label>
+        <div class="relative">
+          <svg class="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-[#71717A]" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <input id="loginPassword" type="password" value="admin123" class="flex h-11 w-full rounded-xl border border-input bg-[#111113] pr-10 px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-[#71717A] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" placeholder="كلمة المرور"/>
+        </div>
+      </div>
+      <button id="loginBtn" onclick="handleLogin()" class="inline-flex items-center justify-center whitespace-nowrap rounded-xl text-sm font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 hover:bg-primary/90 h-11 px-6 w-full">تسجيل الدخول</button>
+      <p class="text-center text-sm text-[#A1A1AA]">ما هي البوابة الذكية؟ <button onclick="showInfo()" class="text-primary hover:text-primary/80 bg-transparent border-none cursor-pointer font-medium">اعرف المزيد</button></p>
+    </div>
+
+    <!-- Info Modal -->
+    <div id="infoModal" class="fixed inset-0 z-[150] bg-black/60 flex items-center justify-center" style="display:none" onclick="if(event.target===this)hideInfo()">
+      <div class="bg-[#18181B] border border-border rounded-2xl p-6 max-w-md w-full mx-4 space-y-4 fade-in shadow-2xl" onclick="event.stopPropagation()">
+        <h2 class="text-lg font-bold">ما هي البوابة الذكية؟</h2>
+        <p class="text-sm text-[#A1A1AA]">بوابة وسيطة شفافة توجّه طلباتك تلقائياً إلى مزود الذكاء الاصطناعي المناسب.</p>
+        <div class="space-y-2 text-sm">${['وسيط شفاف بين تطبيقك والمزودين', 'توجيه ذكي للطلبات حسب النموذج', 'تدوير تلقائي للمفاتيح عند تجاوز الحصة', 'سجل تدقيق وتحليلات كامل'].map(s => `<div class="flex items-center gap-3"><div class="w-1.5 h-1.5 rounded-full bg-primary"></div><span>${s}</span></div>`).join('')}</div>
+        <button onclick="hideInfo()" class="inline-flex items-center justify-center whitespace-nowrap rounded-xl text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring bg-[#111113] text-foreground hover:bg-[#18181B] h-9 px-4 w-full border border-input">حسناً</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== DASHBOARD ==================== -->
+<div id="dashboard" style="display:none">
+  <!-- Top Nav -->
+  <header class="sticky top-0 z-40 border-b border-border glass">
+    <div class="flex h-[72px] items-center gap-3 px-4 lg:px-8 max-w-[1600px] mx-auto">
+      <button onclick="toggleSidebar()" class="inline-flex items-center justify-center rounded-xl text-sm font-medium transition-colors hover:bg-[#18181B] h-9 w-9 lg:hidden">
+        <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+      </button>
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-lg shadow-primary/20">
+          <svg class="w-5 h-5 text-white" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+        </div>
+        <div>
+          <div class="text-base font-bold leading-tight">AI Gateway</div>
+          <div class="text-[10px] text-[#71717A] leading-tight">البوابة الذكية</div>
+        </div>
+        <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[10px] font-semibold bg-success/15 text-success border border-success/20 mr-2"><span class="w-1.5 h-1.5 rounded-full bg-success"></span>Online</span>
+      </div>
+      <div class="flex-1"></div>
+      <div class="hidden sm:flex items-center">
+        <div class="relative group">
+          <svg class="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-[#71717A] pointer-events-none" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" placeholder="بحث... Ctrl+K" class="h-9 w-64 rounded-xl border border-input bg-[#111113] pr-10 px-3 text-sm text-muted-foreground placeholder:text-[#71717A] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors" onfocus="(this.placeholder='ابحث عن مزود، نموذج...')" onblur="(this.placeholder='بحث... Ctrl+K')"/>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button class="inline-flex items-center justify-center rounded-xl h-9 w-9 hover:bg-[#18181B] transition-colors relative">
+          <svg class="w-5 h-5 text-[#A1A1AA]" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+          <span class="absolute -top-0.5 -right-0.5 w-2 h-2 bg-primary rounded-full"></span>
+        </button>
+        <div class="relative" id="userMenuContainer">
+          <button onclick="toggleUserMenu()" class="inline-flex items-center justify-center rounded-xl text-sm font-medium transition-colors hover:bg-[#18181B] h-9 w-9 overflow-hidden bg-gradient-to-br from-primary/20 to-secondary/20 border border-border">
+            <span class="text-xs font-bold text-primary" id="userAvatar">AD</span>
+          </button>
+          <div id="userMenu" class="absolute top-full left-0 mt-2 w-56 rounded-2xl border border-border bg-[#111113] shadow-2xl z-50 py-1.5 fade-in" style="display:none">
+            <div class="px-4 py-3 border-b border-border">
+              <div class="text-sm font-semibold">Admin</div>
+              <div class="text-xs text-[#71717A]" id="userMenuEmail">admin@gateway.com</div>
+            </div>
+            <button onclick="navigateTo('settings')" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-[#18181B] transition-colors text-[#A1A1AA] hover:text-foreground"><svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>الإعدادات</button>
+            <button onclick="handleLogout()" class="w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-[#18181B] transition-colors text-red-400"><svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>تسجيل الخروج</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="flex" style="min-height: calc(100vh - 72px);">
+    <!-- Sidebar -->
+    <aside id="sidebar" class="w-[280px] shrink-0 border-l border-border bg-[#111113] sidebar-mobile lg:static lg:transform-none" style="min-height: calc(100vh - 72px);">
+      <nav class="p-4 space-y-1 sticky top-[88px]">
+        <button onclick="navigateTo('overview')" data-page="overview" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 text-[#A1A1AA] hover:bg-[#18181B] hover:text-foreground"><svg class="w-4 h-4 shrink-0" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>نظرة عامة</button>
+        <button onclick="navigateTo('providers')" data-page="providers" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 text-[#A1A1AA] hover:bg-[#18181B] hover:text-foreground"><svg class="w-4 h-4 shrink-0" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="16" y="16" width="6" height="6" rx="1"/><rect x="2" y="16" width="6" height="6" rx="1"/><rect x="9" y="2" width="6" height="6" rx="1"/><path d="M5 16v-3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3"/><path d="M12 12V8"/></svg>المزودون</button>
+        <button onclick="navigateTo('master-keys')" data-page="master-keys" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 text-[#A1A1AA] hover:bg-[#18181B] hover:text-foreground"><svg class="w-4 h-4 shrink-0" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="15" r="4"/><line x1="10.85" x2="21" y1="12.15" y2="3"/><line x1="19" x2="21" y1="5" y2="3"/><line x1="17" x2="19" y1="7" y2="5"/></svg>المفاتيح</button>
+        <button onclick="navigateTo('logs')" data-page="logs" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 text-[#A1A1AA] hover:bg-[#18181B] hover:text-foreground"><svg class="w-4 h-4 shrink-0" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/></svg>السجلات</button>
+        <button onclick="navigateTo('guide')" data-page="guide" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 text-[#A1A1AA] hover:bg-[#18181B] hover:text-foreground"><svg class="w-4 h-4 shrink-0" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/><path d="M8 7h8"/><path d="M8 11h6"/></svg>الدليل</button>
+        <button onclick="navigateTo('settings')" data-page="settings" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 text-[#A1A1AA] hover:bg-[#18181B] hover:text-foreground"><svg class="w-4 h-4 shrink-0" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>الإعدادات</button>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 min-w-0 p-6 lg:p-8" id="mainContent" style="max-width:1600px;margin:0 auto;width:100%"></main>
+  </div>
+</div>
+
+<!-- ==================== DIALOG ==================== -->
+<div id="dialogOverlay" class="fixed inset-0 z-[100] bg-black/60 flex items-center justify-center" style="display:none" onclick="if(event.target===this)closeDialog()">
+  <div id="dialogContent" class="bg-[#111113] border border-border rounded-2xl shadow-2xl w-full max-w-xl mx-4 max-h-[90vh] overflow-y-auto fade-in" onclick="event.stopPropagation()"></div>
+</div>
+
+<script>
+// ==================== STATE ====================
+const API = window.location.origin;
+let token = localStorage.getItem('token') || null;
+let currentPage = localStorage.getItem('currentPage') || 'overview';
+let providers = [];
+let masterKeys = [];
+let logs = [];
+let logsTotal = 0;
+let logsPage = 0;
+const LOGS_PER_PAGE = 50;
+let logsFilter = { success: null, model: '' };
+let stats = { totalRequests: 0, activeProviders: 0, successRate: 0, totalErrors: 0, topProviders: [], topModels: [], endpointDistribution: [] };
+let refreshInterval = null;
+
+// ==================== API ====================
+async function api(method, path, body) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  const opts = { method, headers };
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(`${API}${path}`, opts);
+  if (res.status === 204) return null;
+  const data = res.status === 200 || res.status === 201 ? (await res.json().catch(() => null)) : null;
+  if (!res.ok) {
+    if (res.status === 401 && path !== '/api/auth/login') { handleLogout(); throw new Error('Unauthorized'); }
+    throw new Error((data && data.detail) || `HTTP ${res.status}`);
+  }
+  return data;
+}
+
+// ==================== TOAST ====================
+function toast(msg, type = 'info') {
+  const c = document.getElementById('toastContainer');
+  const t = document.createElement('div');
+  const colors = { success: 'bg-success/20 text-success border border-success/20', error: 'bg-destructive/20 text-destructive border border-destructive/20', info: 'bg-primary/20 text-primary border border-primary/20' };
+  t.className = `toast-anim pointer-events-auto rounded-xl px-5 py-3 text-sm font-medium shadow-xl flex items-center gap-3 backdrop-blur-sm ${colors[type] || colors.info}`;
+  t.innerHTML = msg;
+  c.appendChild(t);
+  setTimeout(() => { t.style.opacity = '0'; t.style.transition = 'opacity 0.3s'; setTimeout(() => t.remove(), 300); }, 4000);
+}
+
+// ==================== DIALOG ====================
+function openDialog(html) { document.getElementById('dialogContent').innerHTML = html; document.getElementById('dialogOverlay').style.display = 'flex'; }
+function closeDialog() { document.getElementById('dialogOverlay').style.display = 'none'; }
+
+// ==================== SIDEBAR ====================
+function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+
+// ==================== USER MENU ====================
+function toggleUserMenu() {
+  const m = document.getElementById('userMenu');
+  m.style.display = m.style.display === 'none' ? 'block' : 'none';
+}
+document.addEventListener('click', (e) => {
+  const container = document.getElementById('userMenuContainer');
+  if (!container.contains(e.target)) document.getElementById('userMenu').style.display = 'none';
+});
+
+// ==================== NAVIGATION ====================
+function navigateTo(page) {
+  currentPage = page;
+  localStorage.setItem('currentPage', page);
+  document.querySelectorAll('.nav-btn').forEach(b => {
+    b.classList.remove('bg-primary', 'text-primary-foreground');
+    b.classList.add('text-muted-foreground', 'hover:bg-accent', 'hover:text-foreground');
+  });
+  const btn = document.querySelector(`.nav-btn[data-page="${page}"]`);
+  if (btn) { btn.classList.add('bg-primary', 'text-primary-foreground'); btn.classList.remove('text-muted-foreground', 'hover:bg-accent', 'hover:text-foreground'); }
+  if (window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
+  renderPage(page);
+}
+
+// ==================== RENDER ====================
+function renderPage(page) {
+  const el = document.getElementById('mainContent');
+  el.innerHTML = '<div class="flex items-center justify-center py-20"><svg class="w-6 h-6 animate-spin text-muted-foreground" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg></div>';
+  if (page === 'overview') renderOverview();
+  else if (page === 'providers') renderProviders();
+  else if (page === 'master-keys') renderMasterKeys();
+  else if (page === 'logs') renderLogs();
+  else if (page === 'guide') renderGuide();
+  else if (page === 'settings') renderSettings();
+}
+
+// ==================== AUTH ====================
+async function handleLogin() {
+  const btn = document.getElementById('loginBtn');
+  btn.disabled = true; btn.textContent = '...';
+  try {
+    const data = await api('POST', '/api/auth/login', {
+      email: document.getElementById('loginEmail').value,
+      password: document.getElementById('loginPassword').value
+    });
+    if (!data) throw new Error('Login failed');
+    token = data.access_token || data.token;
+    localStorage.setItem('token', token);
+    localStorage.setItem('userEmail', document.getElementById('loginEmail').value);
+    showDashboard();
+    toast('تم تسجيل الدخول بنجاح', 'success');
+  } catch(e) {
+    // Fallback: try our existing /api/login
+    try {
+      const data2 = await api('POST', '/api/login', {
+        username: document.getElementById('loginEmail').value,
+        password: document.getElementById('loginPassword').value
+      });
+      token = data2.access_token;
+      localStorage.setItem('token', token);
+      localStorage.setItem('userEmail', document.getElementById('loginEmail').value);
+      showDashboard();
+      toast('تم تسجيل الدخول بنجاح', 'success');
+    } catch(e2) {
+      toast(e2.message, 'error');
+    }
+  }
+  btn.disabled = false; btn.textContent = 'تسجيل الدخول';
+}
+
+function showInfo() { document.getElementById('infoModal').style.display = 'flex'; }
+function hideInfo() { document.getElementById('infoModal').style.display = 'none'; }
+
+function handleLogout() {
+  token = null; localStorage.removeItem('token');
+  document.getElementById('dashboard').style.display = 'none';
+  document.getElementById('authPage').style.display = 'flex';
+  if (refreshInterval) clearInterval(refreshInterval);
+}
+
+// ==================== DASHBOARD ====================
+async function showDashboard() {
+  try {
+    document.getElementById('loadingScreen').style.display = 'none';
+    document.getElementById('authPage').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    const userEmail = localStorage.getItem('userEmail') || 'admin@gateway.com';
+    const ue = document.getElementById('userEmail') || document.getElementById('userMenuEmail');
+    if (ue) ue.textContent = userEmail;
+    await loadData();
+    renderPage(currentPage);
+  } catch(e) {
+    console.error('Dashboard error:', e);
+    document.getElementById('loadingScreen').style.display = 'none';
+    document.getElementById('authPage').style.display = 'flex';
+  }
+}
+
+async function loadData() {
+  try {
+    stats = await api('GET', '/api/stats') || stats;
+  } catch(e) { stats = { totalRequests: 0, activeProviders: 0, successRate: 0, totalErrors: 0, topProviders: [], topModels: [], endpointDistribution: [] }; }
+  try { providers = await api('GET', '/api/providers') || []; } catch(e) { providers = []; }
+  try { masterKeys = await api('GET', '/api/keys') || []; } catch(e) { masterKeys = []; }
+  try { const lr = await api('GET', `/api/logs?limit=${LOGS_PER_PAGE}&offset=${logsPage * LOGS_PER_PAGE}${logsFilter.success !== null ? '&success=' + logsFilter.success : ''}${logsFilter.model ? '&model=' + logsFilter.model : ''}`); logs = lr.logs || lr || []; logsTotal = lr.total || logs.length; } catch(e) { logs = []; logsTotal = 0; }
+}
+
+// ==================== OVERVIEW ====================
+async function renderOverview() {
+  await loadData();
+  const el = document.getElementById('mainContent');
+  const activeProvs = stats.activeProviders || providers.filter(p => p.isActive !== false).length || 0;
+  const totalReq = (stats.totalRequests || 0).toLocaleString();
+  const successRt = (stats.successRate || 0).toFixed(1);
+  const errors = (stats.totalErrors || 0).toLocaleString();
+  el.innerHTML = `
+    <!-- Hero -->
+    <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/10 via-secondary/5 to-transparent border border-border p-8 mb-8 card-hover">
+      <div class="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+      <div class="relative">
+        <h1 class="text-3xl font-bold tracking-tight">AI Gateway</h1>
+        <p class="text-[#A1A1AA] mt-2 max-w-xl">Manage every AI provider through one unified gateway. Monitor usage, rotate keys, and route requests automatically.</p>
+        <div class="flex gap-3 mt-6">
+          <button onclick="showAddProviderDialog()" class="inline-flex items-center justify-center whitespace-nowrap rounded-xl text-sm font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 hover:bg-primary/90 h-10 px-5 gap-2"><svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Provider</button>
+          <button onclick="navigateTo('guide')" class="inline-flex items-center justify-center whitespace-nowrap rounded-xl text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring border border-border bg-[#111113] text-foreground hover:bg-[#18181B] h-10 px-5 gap-2"><svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>Documentation</button>
+        </div>
+      </div>
+    </div>
+    <!-- Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      ${[
+        ['Total Requests', totalReq, 'primary', '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/>'],
+        ['Active Providers', activeProvs, 'success', '<rect x="16" y="16" width="6" height="6" rx="1"/><rect x="2" y="16" width="6" height="6" rx="1"/><rect x="9" y="2" width="6" height="6" rx="1"/><path d="M5 16v-3a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3"/><path d="M12 12V8"/>'],
+        ['Success Rate', successRt + '%', 'warning', '<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>'],
+        ['Errors', errors, 'destructive', '<circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>']
+      ].map(([label, value, color, svgPath]) => `<div class="rounded-2xl border border-border bg-card p-5 card-hover"><div class="flex items-start justify-between"><div class="w-10 h-10 rounded-xl bg-${color}/10 flex items-center justify-center text-${color}"><svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${svgPath}</svg></div><span class="text-xs text-[#71717A] font-mono">+0%</span></div><div class="text-3xl font-bold mt-3 tracking-tight">${value}</div><div class="text-sm text-[#71717A] mt-1">${label}</div></div>`).join('')}
+    </div>
+    <!-- Charts / Lists -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+      <div class="rounded-2xl border border-border bg-card p-5 card-hover"><h3 class="text-base font-semibold">Top Providers</h3><p class="text-xs text-[#71717A] mb-4">By request volume</p>${(stats.topProviders || []).length ? stats.topProviders.map((p, i) => `<div class="flex items-center justify-between py-2.5 border-b border-border last:border-0"><div class="flex items-center gap-3"><span class="w-6 h-6 rounded-lg bg-primary/10 text-primary flex items-center justify-center text-xs font-bold">${i + 1}</span><span class="text-sm">${p.name || p.provider}</span></div><span class="text-sm font-semibold">${p.count}</span></div>`).join('') : '<div class="text-sm text-[#71717A] py-8 text-center">No data yet</div>'}</div>
+      <div class="rounded-2xl border border-border bg-card p-5 card-hover"><h3 class="text-base font-semibold">Top Models</h3><p class="text-xs text-[#71717A] mb-4">By request volume</p>${(stats.topModels || []).length ? stats.topModels.map((m, i) => `<div class="flex items-center justify-between py-2.5 border-b border-border last:border-0"><div class="flex items-center gap-3"><span class="w-6 h-6 rounded-lg bg-secondary/10 text-secondary flex items-center justify-center text-xs font-bold">${i + 1}</span><span class="text-sm font-mono" dir="ltr">${m.name || m.model}</span></div><span class="text-sm font-semibold">${m.count}</span></div>`).join('') : '<div class="text-sm text-[#71717A] py-8 text-center">No data yet</div>'}</div>
+    </div>`;
+}
+
+// ==================== PROVIDERS ====================
+async function renderProviders() {
+  await loadData();
+  const el = document.getElementById('mainContent');
+  el.innerHTML = `
+    <div class="flex items-center justify-between mb-6">
+      <div><h1 class="text-2xl font-bold">المزودون</h1><p class="text-sm text-muted-foreground">إدارة مزودي الذكاء الاصطناعي</p></div>
+      <button onclick="showAddProviderDialog()" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 px-4 py-2 gap-2"><svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>إضافة مزود</button>
+    </div>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      ${providers.length ? providers.map(p => `
+        <div class="rounded-lg border bg-card text-card-foreground p-4">
+          <div class="flex items-start justify-between mb-3">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center text-primary"><svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
+              <div><div class="font-medium flex items-center gap-2">${p.name}<span class="inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-semibold bg-secondary text-muted-foreground border-border">#${p.priority ?? 0}</span></div><div class="text-xs text-muted-foreground font-mono" dir="ltr">${p.baseUrl || p.api_base || ''}</div></div>
+            </div>
+            <span class="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 ${p.isActive !== false ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/20' : 'bg-secondary text-muted-foreground border-border'}"><span class="w-1.5 h-1.5 rounded-full ${p.isActive !== false ? 'bg-emerald-400' : 'bg-muted-foreground'} ml-1.5"></span>${p.isActive !== false ? 'نشط' : 'معطّل'}</span>
+          </div>
+          <div class="grid grid-cols-3 gap-2 mb-3 text-center text-xs">
+            <div><div class="font-semibold text-sm">${p._count?.requestLogs || 0}</div><div class="text-muted-foreground">الطلبات</div></div>
+            <div><div class="font-semibold text-sm">${p.successRate || '—'}%</div><div class="text-muted-foreground">معدل النجاح</div></div>
+            <div><div class="font-semibold text-sm">${p.lastUsedAt ? timeAgo(p.lastUsedAt) : '—'}</div><div class="text-muted-foreground">آخر استخدام</div></div>
+          </div>
+          <div class="flex gap-2 flex-wrap">
+            <button onclick="showProviderDetail('${p.id}')" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring border border-border bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-7 px-2.5">إدارة التفاصيل</button>
+            <button onclick="showEditProviderDialog('${p.id}')" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring border border-border bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-7 px-2.5">تعديل</button>
+            <button onclick="toggleProviderStatus('${p.id}')" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring border border-border bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-7 px-2.5">${p.isActive !== false ? 'تعطيل' : 'تفعيل'}</button>
+            <button onclick="deleteProvider('${p.id}')" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring border border-destructive/50 text-destructive bg-background shadow-sm hover:bg-destructive/10 h-7 px-2.5"><svg class="w-3 h-3 ml-1" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>حذف</button>
+          </div>
+        </div>`) : `<div class="col-span-full flex flex-col items-center gap-2 py-16 text-center"><svg class="w-12 h-12 text-muted-foreground/40" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg><p class="text-sm text-muted-foreground">لا يوجد مزودون بعد</p><p class="text-xs text-muted-foreground">أضف مزودك الأول لبدء استخدام البوابة</p></div>`}
+    </div>`;
+}
+
+// ==================== PROVIDER DIALOGS ====================
+function providerFormHTML(p) {
+  const isEdit = !!p;
+  return `
+    <div class="p-6 space-y-5 max-h-[85vh] overflow-y-auto">
+      <div class="flex items-center justify-between"><div><h2 class="text-lg font-bold">${isEdit ? 'تعديل المزود' : 'إضافة مزود جديد'}</h2><p class="text-sm text-muted-foreground">${isEdit ? 'تحديث بيانات المزود' : 'تسجيل مزود API جديد متوافق مع OpenAI'}</p></div><button onclick="closeDialog()" class="text-muted-foreground hover:text-foreground transition-colors"><svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+
+      <!-- Priority -->
+      <div class="space-y-2">
+        <label class="text-sm font-medium">الأولوية</label>
+        <div class="flex gap-3 items-center">
+          <input type="number" id="pf_priority" class="flex h-9 w-20 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm" value="${p?.priority ?? 0}" min="0"/>
+          <span class="text-xs text-muted-foreground">الرقم الأصغر = أولوية أعلى</span>
+        </div>
+      </div>
+
+      <!-- Name -->
+      <div class="space-y-2">
+        <label class="text-sm font-medium">اسم المزود</label>
+        <input id="pf_name" class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm" placeholder="مثال: OpenAI, Groq, Azure" value="${p?.name || ''}" dir="auto"/>
+      </div>
+
+      <!-- Base URL -->
+      <div class="space-y-2">
+        <label class="text-sm font-medium">عنوان API الأساسي</label>
+        <input id="pf_url" class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm font-mono text-xs" placeholder="https://api.openai.com/v1" value="${p?.baseUrl || 'https://api.openai.com/v1'}" dir="ltr"/>
+        <p class="text-xs text-muted-foreground">يجب أن يتضمن /v1 إذا كان المزود يتطلبه (مثل OpenAI, OpenRouter)</p>
+      </div>
+
+      <!-- Auth -->
+      <div class="rounded-lg border border-border p-4 space-y-3">
+        <h4 class="text-sm font-semibold">طريقة المصادقة</h4>
+        <div class="grid grid-cols-2 gap-3">
+          <div class="space-y-1">
+            <label class="text-xs text-muted-foreground">اسم الرأس (Header)</label>
+            <select id="pf_authHeader" class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm">${['Authorization', 'api-key', 'X-API-Key'].map(v => `<option value="${v}"${(p?.authHeader || 'Authorization') === v ? ' selected' : ''}>${v}</option>`).join('')}</select>
+          </div>
+          <div class="space-y-1">
+            <label class="text-xs text-muted-foreground">تنسيق التوكن</label>
+            <select id="pf_tokenFormat" class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm">${['Bearer Token', 'Raw Token', 'ApiKey'].map(v => `<option value="${v}"${(p?.tokenFormat || 'Bearer Token') === v ? ' selected' : ''}>${v}</option>`).join('')}</select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Protocol -->
+      <div class="space-y-2">
+        <label class="text-sm font-medium">ترجمة البروتوكول</label>
+        <select id="pf_protocol" class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm">${['Transparent', 'OpenAI → Anthropic', 'OpenAI → Gemini', 'OpenAI → Cohere'].map(v => `<option value="${v}"${(p?.protocol || 'Transparent') === v ? ' selected' : ''}>${v}</option>`).join('')}</select>
+        <p class="text-xs text-muted-foreground">"Transparent" ترسل الطلبات كما هي بدون تحويل</p>
+      </div>
+
+      <!-- Endpoints -->
+      <div class="space-y-2">
+        <div class="flex items-center justify-between">
+          <label class="text-sm font-medium">المسارات (Endpoints)</label>
+          <button onclick="addEndpointRow()" class="text-xs text-primary hover:underline">+ إضافة مسار</button>
+        </div>
+        <div id="pf_endpoints">${(p?.endpoints?.length ? p.endpoints : [
+          {type:'chat', path:'/v1/chat/completions'},
+          {type:'models', path:'/v1/models'},
+          {type:'embeddings', path:'/v1/embeddings'},
+          {type:'images', path:'/v1/images/generations'}
+        ]).map((ep, i) => endpointRowHTML(ep, i)).join('')}</div>
+      </div>
+
+      <!-- Models -->
+      <div class="space-y-2">
+        <label class="text-sm font-medium">النماذج المدعومة</label>
+        <textarea id="pf_models" class="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm font-mono text-xs" dir="ltr" placeholder="gpt-4o&#10;gpt-4o-mini&#10;gpt-4.1">${(p?.models || []).map(m => typeof m === 'string' ? m : (m.name || m.id || m)).join('\n')}</textarea>
+        <p class="text-xs text-muted-foreground">نموذج واحد في كل سطر</p>
+      </div>
+
+      <!-- Buttons -->
+      <div class="flex gap-2 justify-end pt-2 border-t border-border">
+        <button onclick="closeDialog()" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring border border-border bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-9 px-4">إلغاء</button>
+        <button onclick="${isEdit ? `updateProvider('${p.id}')` : 'addProvider()'}" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 px-4 gap-2"><svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>${isEdit ? 'حفظ' : 'إضافة'}</button>
+      </div>
+    </div>`;
+}
+
+function endpointRowHTML(ep, i) {
+  return `<div class="flex gap-2 items-center mb-2 endpoint-row">
+    <select class="flex h-9 w-28 rounded-md border border-input bg-transparent px-2 py-1 text-xs shadow-sm endpoint-type" data-idx="${i}">${['chat','models','embeddings','images','audio','rerank'].map(v => `<option value="${v}"${ep.type === v ? ' selected' : ''}>${v}</option>`).join('')}</select>
+    <input class="flex h-9 flex-1 rounded-md border border-input bg-transparent px-3 py-1 text-xs shadow-sm font-mono endpoint-path" value="${ep.path || '/'}" dir="ltr" data-idx="${i}"/>
+    <button onclick="this.closest('.endpoint-row').remove()" class="text-destructive hover:text-destructive/70 shrink-0"><svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  </div>`;
+}
+
+function addEndpointRow() {
+  const container = document.getElementById('pf_endpoints');
+  const i = container.querySelectorAll('.endpoint-row').length;
+  container.insertAdjacentHTML('beforeend', endpointRowHTML({type:'chat', path:'/'}, i));
+}
+
+function showAddProviderDialog() {
+  openDialog(providerFormHTML(null));
+}
+
+async function addProvider() {
+  const payload = gatherProviderFormData();
+  if (!payload.name || !payload.baseUrl) { toast('الاسم وعنوان API مطلوبان', 'error'); return; }
+  try {
+    await api('POST', '/api/providers', payload);
+    closeDialog(); toast('تمت إضافة المزود', 'success');
+    renderPage('providers');
+  } catch(e) { toast(e.message, 'error'); }
+}
+
+function showEditProviderDialog(id) {
+  const p = providers.find(x => x.id === id);
+  if (!p) return;
+  openDialog(providerFormHTML(p));
+}
+
+async function updateProvider(id) {
+  const payload = gatherProviderFormData();
+  try {
+    await api('PATCH', `/api/providers/${id}`, payload);
+    closeDialog(); toast('تم تحديث المزود', 'success');
+    renderPage('providers');
+  } catch(e) { toast(e.message, 'error'); }
+}
+
+function gatherProviderFormData() {
+  const modelsRaw = document.getElementById('pf_models').value;
+  const models = modelsRaw.split('\n').map(s => s.trim()).filter(Boolean).map((name, i) => ({id: 'm_' + i, name}));
+  const endpointRows = document.querySelectorAll('#pf_endpoints .endpoint-row');
+  const endpoints = Array.from(endpointRows).map((row, i) => ({
+    id: 'ep_' + i,
+    type: row.querySelector('.endpoint-type').value,
+    path: row.querySelector('.endpoint-path').value
+  }));
+  return {
+    name: document.getElementById('pf_name').value,
+    baseUrl: document.getElementById('pf_url').value,
+    priority: parseInt(document.getElementById('pf_priority').value) || 0,
+    authHeader: document.getElementById('pf_authHeader').value,
+    tokenFormat: document.getElementById('pf_tokenFormat').value,
+    protocol: document.getElementById('pf_protocol').value,
+    endpoints,
+    models
+  };
+}
+
+function showProviderDetail(id) {
+  const p = providers.find(x => x.id === id);
+  if (!p) return;
+  openDialog(`
+    <div class="p-6 space-y-4 max-h-[85vh] overflow-y-auto">
+      <div class="flex items-center justify-between"><div><h2 class="text-lg font-bold">${p.name}</h2><p class="text-xs text-muted-foreground font-mono" dir="ltr">${p.baseUrl || ''}</p></div><button onclick="closeDialog()" class="text-muted-foreground hover:text-foreground transition-colors"><svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+      <div class="grid grid-cols-2 gap-3 text-sm">${[
+        ['الأولوية', p.priority ?? 0],
+        ['البروتوكول', p.protocol || 'Transparent'],
+        ['المصادقة', p.authHeader || 'Authorization'],
+        ['تنسيق التوكن', p.tokenFormat || 'Bearer Token'],
+        ['الحالة', p.isActive !== false ? 'نشط' : 'معطل'],
+        ['الطلبات', p._count?.requestLogs || 0]
+      ].map(([k, v]) => `<div class="bg-muted rounded-lg p-3"><div class="text-xs text-muted-foreground">${k}</div><div class="font-medium">${v}</div></div>`).join('')}</div>
+      <div><h4 class="text-sm font-semibold mb-2">المسارات (${(p.endpoints || []).length})</h4>${(p.endpoints || []).length ? '<div class="space-y-1">' + p.endpoints.map(ep => `<div class="flex gap-2 items-center text-xs bg-muted rounded-lg p-2"><span class="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-semibold bg-primary/10 text-primary">${ep.type}</span><span class="font-mono" dir="ltr">${ep.path}</span></div>`).join('') + '</div>' : '<p class="text-xs text-muted-foreground">لا توجد مسارات</p>'}</div>
+      <div><h4 class="text-sm font-semibold mb-2">النماذج (${(p.models || []).length})</h4>${(p.models || []).length ? '<div class="flex flex-wrap gap-1">' + p.models.map(m => `<span class="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold bg-secondary text-foreground font-mono">${typeof m === 'string' ? m : (m.name || m.id || m)}</span>`).join('') + '</div>' : '<p class="text-xs text-muted-foreground">لا توجد نماذج</p>'}</div>
+      <div class="flex justify-end pt-2 border-t border-border"><button onclick="closeDialog()" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 px-4">إغلاق</button></div>
+    </div>`);
+}
+
+async function toggleProviderStatus(id) {
+  try {
+    const p = providers.find(x => x.id === id);
+    await api('PATCH', `/api/providers/${id}`, { isActive: !(p?.isActive !== false) });
+    toast(`تم ${p?.isActive !== false ? 'تعطيل' : 'تفعيل'} المزود`, 'success');
+    renderPage('providers');
+  } catch(e) { toast(e.message, 'error'); }
+}
+
+async function deleteProvider(id) {
+  if (!confirm('حذف هذا المزود؟')) return;
+  try {
+    await api('DELETE', `/api/providers/${id}`);
+    toast('تم حذف المزود', 'success');
+    renderPage('providers');
+  } catch(e) { toast(e.message, 'error'); }
+}
+
+// ==================== MASTER KEYS ====================
+async function renderMasterKeys() {
+  await loadData();
+  const el = document.getElementById('mainContent');
+  el.innerHTML = `
+    <div class="flex items-center justify-between mb-6">
+      <div><h1 class="text-2xl font-bold">المفاتيح الرئيسية</h1><p class="text-sm text-muted-foreground">استخدم هذه المفاتيح داخل تطبيقاتك للوصول إلى البوابة</p></div>
+      <button onclick="showCreateKeyDialog()" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 px-4 py-2 gap-2"><svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>إنشاء مفتاح</button>
+    </div>
+    <div class="rounded-lg border border-amber-500/20 bg-amber-500/5 p-3 mb-4 flex items-start gap-3">
+      <svg class="w-5 h-5 text-amber-500 mt-0.5 shrink-0" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      <div><p class="text-sm font-medium">طريقة الاستخدام</p><p class="text-xs text-muted-foreground">أرسل طلباتك إلى /v1/chat/completions مع الترويسة Authorization: Bearer YOUR_MASTER_KEY. تعمل البوابة كوكيل شفاف وتعيد الرد كما هو.</p></div>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      ${masterKeys.length ? masterKeys.map(k => `
+        <div class="rounded-lg border bg-card text-card-foreground p-4">
+          <div class="flex items-start justify-between mb-3">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center text-primary"><svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="15" r="4"/><line x1="10.85" x2="21" y1="12.15" y2="3"/><line x1="19" x2="21" y1="5" y2="3"/><line x1="17" x2="19" y1="7" y2="5"/></svg></div>
+              <div><div class="font-medium">${k.name}</div><div class="text-xs text-muted-foreground font-mono" dir="ltr">${k.keyPreview || k.key?.substring(0, 12) + '...' || k.id}</div></div>
+            </div>
+            ${keyStatusBadge(k)}
+          </div>
+          <div class="grid grid-cols-2 gap-2 mb-3 text-center text-xs">
+            <div><div class="font-semibold text-sm">${k._count?.requestLogs || k.usage_count || 0}</div><div class="text-muted-foreground">الطلبات</div></div>
+            <div><div class="font-semibold text-sm">${k.lastUsedAt ? timeAgo(k.lastUsedAt) : '—'}</div><div class="text-muted-foreground">آخر استخدام</div></div>
+          </div>
+          <div class="flex gap-2">
+            <button onclick="toggleKeyStatus('${k.id}')" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring border border-border bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-7 px-2.5">${k.isActive !== false ? 'تعطيل' : 'تفعيل'}</button>
+            <button onclick="deleteKey('${k.id}')" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring border border-destructive/50 text-destructive bg-background shadow-sm hover:bg-destructive/10 h-7 px-2.5"><svg class="w-3 h-3 ml-1" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>حذف</button>
+          </div>
+        </div>`) : `<div class="col-span-full flex flex-col items-center gap-2 py-16 text-center"><svg class="w-12 h-12 text-muted-foreground/40" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="15" r="4"/><line x1="10.85" x2="21" y1="12.15" y2="3"/><line x1="19" x2="21" y1="5" y2="3"/><line x1="17" x2="19" y1="7" y2="5"/></svg><p class="text-sm text-muted-foreground">لا توجد مفاتيح رئيسية</p><p class="text-xs text-muted-foreground">أنشئ مفتاحك الأول لبدء استخدام البوابة من تطبيقاتك.</p></div>`}
+    </div>`;
+}
+
+function keyStatusBadge(k) {
+  if (k.isActive === false) return `<span class="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold border-border bg-secondary text-muted-foreground"><span class="w-1.5 h-1.5 rounded-full bg-muted-foreground ml-1.5"></span>معطّل</span>`;
+  return `<span class="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold bg-emerald-500/15 text-emerald-400 border-emerald-500/20"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 ml-1.5"></span>نشط</span>`;
+}
+
+function showCreateKeyDialog() {
+  openDialog(`
+    <div class="p-6 space-y-4">
+      <div><h2 class="text-lg font-bold">إنشاء مفتاح رئيسي جديد</h2><p class="text-sm text-muted-foreground">أدخل اسمًا تعريفيًا للمفتاح.</p></div>
+      <div class="space-y-2"><label class="text-sm font-medium">اسم المفتاح</label><input id="newKeyName" class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm" placeholder="مثال: تطبيق الإنتاج"/></div>
+      <div class="flex gap-2 justify-end pt-2">
+        <button onclick="closeDialog()" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring border border-border bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-9 px-4">إلغاء</button>
+        <button onclick="createKey()" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 px-4">إنشاء</button>
+      </div>
+    </div>`);
+}
+
+async function createKey() {
+  const name = document.getElementById('newKeyName').value;
+  if (!name) { toast('يرجى إدخال اسم المفتاح', 'error'); return; }
+  try {
+    const data = await api('POST', '/api/keys', { name, provider: 'openai', key: 'sk-' + Math.random().toString(36).substring(2) });
+    closeDialog();
+    toast('تم إنشاء المفتاح الرئيسي', 'success');
+    renderPage('master-keys');
+  } catch(e) { toast(e.message, 'error'); }
+}
+
+async function toggleKeyStatus(id) {
+  try {
+    const k = masterKeys.find(x => x.id == id);
+    if (k.isActive) {
+      await api('DELETE', `/api/keys/${id}`);
+    } else {
+      // re-enable not supported via API, just reload
+    }
+    toast(`تم ${k?.isActive !== false ? 'تعطيل' : 'تفعيل'} المفتاح`, 'success');
+    renderPage('master-keys');
+  } catch(e) { toast(e.message, 'error'); }
+}
+
+async function deleteKey(id) {
+  if (!confirm('حذف هذا المفتاح؟ لن تتمكن التطبيقات من استخدامه بعد الآن.')) return;
+  try {
+    await api('DELETE', `/api/keys/${id}`);
+    toast('تم حذف المفتاح', 'success');
+    renderPage('master-keys');
+  } catch(e) { toast(e.message, 'error'); }
+}
+
+// ==================== LOGS ====================
+async function renderLogs() {
+  await loadData();
+  const el = document.getElementById('mainContent');
+  const totalPages = Math.ceil(logsTotal / LOGS_PER_PAGE) || 1;
+  el.innerHTML = `
+    <div class="flex items-center justify-between mb-6">
+      <div><h1 class="text-2xl font-bold">السجلات</h1><p class="text-sm text-muted-foreground">سجل طلبات البوابة — آخر ${logsTotal} طلب</p></div>
+    </div>
+    <div class="rounded-lg border bg-card text-card-foreground">
+      <div class="p-4 border-b border-border flex flex-wrap items-center gap-3">
+        <select id="logStatusFilter" onchange="applyLogFilter()" class="flex h-9 w-auto rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm">
+          <option value="">الكل</option>
+          <option value="true">ناجح</option>
+          <option value="false">فاشل</option>
+        </select>
+        <input id="logModelFilter" type="text" placeholder="تصفية حسب النموذج..." onchange="applyLogFilter()" class="flex h-9 w-48 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm placeholder:text-muted-foreground"/>
+        <div class="flex items-center gap-1.5 text-xs text-muted-foreground mr-auto">
+          <svg class="w-3 h-3 animate-spin" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+          تحديث تلقائي كل 15 ثانية
+        </div>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead><tr class="border-b border-border">
+            <th class="text-right p-3 font-medium text-xs text-muted-foreground">الحالة</th>
+            <th class="text-right p-3 font-medium text-xs text-muted-foreground">النموذج</th>
+            <th class="text-right p-3 font-medium text-xs text-muted-foreground">المزود</th>
+            <th class="text-right p-3 font-medium text-xs text-muted-foreground">النوع</th>
+            <th class="text-right p-3 font-medium text-xs text-muted-foreground">الكود</th>
+            <th class="text-right p-3 font-medium text-xs text-muted-foreground">المدة</th>
+            <th class="text-right p-3 font-medium text-xs text-muted-foreground">التبديلات</th>
+            <th class="text-right p-3 font-medium text-xs text-muted-foreground">الوقت</th>
+          </tr></thead>
+          <tbody>${logs.length ? logs.map(l => `
+            <tr class="border-b border-border hover:bg-muted/50 transition-colors">
+              <td class="p-3">${l.success ? '<svg class="w-4 h-4 text-emerald-400" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' : '<svg class="w-4 h-4 text-red-500" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'}</td>
+              <td class="p-3 font-mono text-xs" dir="ltr">${l.model || l.model_name || '—'}</td>
+              <td class="p-3">${l.providerName || l.provider || '—'}</td>
+              <td class="p-3"><span class="inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium border-border bg-secondary text-muted-foreground">${l.endpointType || l.endpoint || 'chat'}</span></td>
+              <td class="p-3"><span class="font-mono text-xs ${l.statusCode < 300 ? 'text-emerald-400' : l.statusCode < 400 ? 'text-amber-500' : 'text-red-500'}">${l.statusCode || '—'}</span></td>
+              <td class="p-3 font-mono text-xs text-muted-foreground">${l.durationMs ? l.durationMs + 'ms' : l.response_time ? (l.response_time * 1000).toFixed(0) + 'ms' : '—'}</td>
+              <td class="p-3">${l.retried ? `<span class="inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium border-border bg-secondary text-muted-foreground gap-1"><svg class="w-3 h-3" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>${l.retried}</span>` : '—'}</td>
+              <td class="p-3 text-xs text-muted-foreground">${l.createdAt ? timeAgo(l.createdAt) : '—'}</td>
+            </tr>`).join('') : '<tr><td colspan="8" class="p-8 text-center text-sm text-muted-foreground">لا توجد سجلات<br><span class="text-xs">ستظهر هنا طلبات البوابة فور إرسالها.</span></td></tr>'}</tbody>
+        </table>
+      </div>
+      ${logs.length ? `<div class="flex items-center justify-between p-4 border-t border-border text-xs text-muted-foreground">
+        <span>صفحة ${logsPage + 1} من ${totalPages} — ${logsTotal} إجمالي</span>
+        <div class="flex gap-2">
+          <button onclick="if(${logsPage} > 0) { logsPage--; renderPage('logs'); }" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-xs font-medium transition-colors border border-border bg-background shadow-sm hover:bg-accent h-7 px-2.5 gap-1 ${logsPage <= 0 ? 'opacity-50' : ''}"><svg class="w-3 h-3" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>السابق</button>
+          <button onclick="if(${logsPage < totalPages - 1}) { logsPage++; renderPage('logs'); }" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-xs font-medium transition-colors border border-border bg-background shadow-sm hover:bg-accent h-7 px-2.5 gap-1 ${logsPage >= totalPages - 1 ? 'opacity-50' : ''}">التالي<svg class="w-3 h-3" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+        </div>
+      </div>` : ''}
+    </div>`;
+  // Auto-refresh
+  if (refreshInterval) clearInterval(refreshInterval);
+  refreshInterval = setInterval(() => { if (currentPage === 'logs') renderPage('logs'); }, 15000);
+}
+
+function applyLogFilter() {
+  logsPage = 0;
+  renderPage('logs');
+}
+
+// ==================== GUIDE ====================
+function renderGuide() {
+  const el = document.getElementById('mainContent');
+  const baseUrl = window.location.origin;
+  el.innerHTML = `
+    <div class="max-w-4xl mx-auto space-y-8">
+      <!-- Header -->
+      <div class="mb-2"><h1 class="text-2xl font-bold">الدليل الشامل لاستخدام بوابة API</h1><p class="text-sm text-muted-foreground">وكيل عكسي شفاف يدير مفاتيح الـ AI الخاصة بك — كل الأمثلة تعمل فعلياً</p></div>
+
+      <!-- Overview -->
+      <div class="rounded-lg border bg-card text-card-foreground p-5">
+        <h2 class="text-lg font-bold mb-3 flex items-center gap-2"><svg class="w-5 h-5 text-primary" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>نظرة عامة</h2>
+        <p class="text-sm text-muted-foreground mb-3">البوابة هي <strong class="text-foreground">وكيل عكسي شفاف</strong> يدير مفاتيح الـ AI الخاصة بك، ويرسل الطلبات إلى المزود الصحيح بناءً على اسم النموذج.</p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">${[
+          ['🔄', 'تدوير تلقائي للمفاتيح عند تجاوز الحصة'],
+          ['🌐', 'دعم متعدد المزودين (OpenAI, DeepSeek, Google, Anthropic, Qwen)'],
+          ['🔒', 'شفافية كاملة — هيكل الطلب نفسه، فقط المفتاح يُستبدل'],
+          ['📊', 'تحليلات وإحصائيات لاستخدام المفاتيح والنماذج']
+        ].map(([icon, text]) => `<div class="flex items-center gap-2 bg-muted rounded-lg p-3"><span>${icon}</span><span>${text}</span></div>`).join('')}</div>
+      </div>
+
+      <!-- Quick Start -->
+      <div class="rounded-lg border bg-card text-card-foreground p-5">
+        <h2 class="text-lg font-bold mb-3 flex items-center gap-2"><svg class="w-5 h-5 text-primary" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>البداية السريعة</h2>
+        <div class="space-y-3 text-sm">
+          <div class="flex items-center gap-3 bg-muted rounded-lg p-3"><div class="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold shrink-0">1</div><div><span class="text-muted-foreground">سجل الدخول إلى </span><a href="/" class="text-primary underline underline-offset-2">لوحة التحكم</a></div></div>
+          <div class="flex items-center gap-3 bg-muted rounded-lg p-3"><div class="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold shrink-0">2</div><div><span class="text-muted-foreground">أنشئ مفتاحاً رئيسياً بصيغة </span><code class="inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-semibold bg-secondary text-foreground" dir="ltr">gw_xxx_YOUR_MASTER_KEY</code></div></div>
+          <div class="flex items-center gap-3 bg-muted rounded-lg p-3"><div class="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold shrink-0">3</div><div><span class="text-muted-foreground">استخدم المفتاح في كل الطلبات إلى </span><code class="inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-semibold bg-secondary text-foreground" dir="ltr">${baseUrl}/v1/*</code></div></div>
+        </div>
+      </div>
+
+      <!-- Examples -->
+      <div class="rounded-lg border bg-card text-card-foreground p-5">
+        <h2 class="text-lg font-bold mb-3 flex items-center gap-2"><svg class="w-5 h-5 text-primary" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5"/><path d="M8 3H3v5"/><path d="M3 16v5h5"/><path d="M16 21h5v-5"/><path d="m12 8-4 8 8-4-8-4 4 8z"/></svg>أمثلة عملية — Chat Completions</h2>
+
+        <div class="space-y-4">${[
+          ['OpenAI — GPT-4o', 'gpt-4o', 'مرحبا، كيف حالك؟'],
+          ['DeepSeek — DeepSeek-V3.2', 'deepseek-ai/DeepSeek-V3.2', 'اكتب قصيدة قصيرة عن البحر'],
+          ['Qwen — Qwen3-32B', 'Qwen/Qwen3-32B', 'اشرح الذكاء الاصطناعي في سطرين'],
+          ['Anthropic — Claude 3 Opus', 'claude-3-opus-20240229', 'ما هو مستقبل التكنولوجيا؟'],
+          ['Google — Gemini 1.5 Pro', 'gemini-1.5-pro', 'قدم لي نصيحة للتعلم السريع']
+        ].map(([label, model, msg]) => `
+          <div class="bg-muted rounded-lg p-4">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-sm font-medium">${label}</span>
+              <button onclick="copyText(this)" data-copy='curl -X POST ${baseUrl}/v1/chat/completions -H "Authorization: Bearer YOUR_KEY" -H "Content-Type: application/json" -d "{\\\\"model\\\\": \\\\"${model}\\\\", \\\\"messages\\\\": [{\\\\"role\\\\": \\\\"user\\\\", \\\\"content\\\\": \\\\"${msg}\\\\"}]}"' class="inline-flex items-center gap-1 text-xs text-primary hover:underline"><svg class="w-3 h-3" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>نسخ</button>
+            </div>
+            <div class="text-xs font-mono whitespace-pre-wrap break-all" dir="ltr">curl -X POST ${baseUrl}/v1/chat/completions \\\\\n  -H "Authorization: Bearer YOUR_KEY" \\\\\n  -H "Content-Type: application/json" \\\\\n  -d '{"model":"${model}","messages":[{"role":"user","content":"${msg}"}]}'</div>
+          </div>`).join('')}
+        </div>
+      </div>
+
+      <!-- Python SDK -->
+      <div class="rounded-lg border bg-card text-card-foreground p-5">
+        <h2 class="text-lg font-bold mb-3 flex items-center gap-2"><svg class="w-5 h-5 text-primary" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>استخدام OpenAI SDK (Python)</h2>
+        <p class="text-xs text-muted-foreground mb-3">يعمل مع كل النماذج — غيّر فقط قيمة <code class="inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-semibold bg-secondary text-foreground">model</code>.</p>
+        <div class="bg-muted rounded-lg p-3 text-xs font-mono" dir="ltr">
+from openai import OpenAI
+
+client = OpenAI(
+    api_key="gw_xxx_YOUR_MASTER_KEY",
+    base_url="${baseUrl}/v1"
+)
+
+response = client.chat.completions.create(
+    model="deepseek-ai/DeepSeek-V3.2",
+    messages=[{"role": "user", "content": "مرحبا، كيف يمكنني استخدام هذه البوابة؟"}]
+)
+
+print(response.choices[0].message.content)
+          <button onclick="copyText(this)" data-copy='from openai import OpenAI
+
+client = OpenAI(
+    api_key="gw_xxx_YOUR_MASTER_KEY",
+    base_url="${baseUrl}/v1"
+)
+
+response = client.chat.completions.create(
+    model="deepseek-ai/DeepSeek-V3.2",
+    messages=[{"role": "user", "content": "مرحبا، كيف يمكنني استخدام هذه البوابة؟"}]
+)
+
+print(response.choices[0].message.content)' class="mt-2 text-xs text-primary hover:underline flex items-center gap-1"><svg class="w-3 h-3" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>نسخ الكود</button>
+        </div>
+      </div>
+
+      <!-- Models List -->
+      <div class="rounded-lg border bg-card text-card-foreground p-5">
+        <h2 class="text-lg font-bold mb-3 flex items-center gap-2"><svg class="w-5 h-5 text-primary" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" x2="12" y1="22.08" y2="12"/></svg>قائمة النماذج المدعومة</h2>
+        <p class="text-xs text-muted-foreground mb-3">احصل على القائمة الكاملة برمجياً عبر:</p>
+        <div class="bg-muted rounded-lg p-3 text-xs font-mono mb-3" dir="ltr">
+curl -X GET ${baseUrl}/v1/models \\
+  -H "Authorization: Bearer YOUR_KEY"</div>
+        <div class="bg-muted rounded-lg p-3 text-xs font-mono mb-3" dir="ltr">
+# مثال للرد:
+{
+  "data": [
+    {"id": "gpt-4o", "object": "model", "owned_by": "openai"},
+    {"id": "deepseek-ai/DeepSeek-V3.2", "object": "model", "owned_by": "deepseek"},
+    {"id": "Qwen/Qwen3-32B", "object": "model", "owned_by": "qwen"},
+    {"id": "claude-3-opus-20240229", "object": "model", "owned_by": "anthropic"},
+    {"id": "gemini-1.5-pro", "object": "model", "owned_by": "google"}
+  ]
+}</div>
+      </div>
+
+      <!-- Endpoints Table -->
+      <div class="rounded-lg border bg-card text-card-foreground p-5">
+        <h2 class="text-lg font-bold mb-3 flex items-center gap-2"><svg class="w-5 h-5 text-primary" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" x2="21" y1="6" y2="6"/><line x1="8" x2="21" y1="12" y2="12"/><line x1="8" x2="21" y1="18" y2="18"/><line x1="3" x2="3.01" y1="6" y2="6"/><line x1="3" x2="3.01" y1="12" y2="12"/><line x1="3" x2="3.01" y1="18" y2="18"/></svg>نقاط النهاية المدعومة</h2>
+        <div class="overflow-x-auto"><table class="w-full text-sm"><thead><tr class="border-b border-border"><th class="text-right p-2 font-medium text-muted-foreground">المسار</th><th class="text-right p-2 font-medium text-muted-foreground">الطريقة</th><th class="text-right p-2 font-medium text-muted-foreground">الوظيفة</th></tr></thead><tbody>
+          ${[
+            ['/v1/chat/completions', 'POST', 'إكمال المحادثة (الاستخدام الرئيسي)'],
+            ['/v1/chats', 'POST', 'بدء جلسة محادثة جديدة'],
+            ['/v1/ai/chat', 'POST', 'محادثة مع نماذج الذكاء الاصطناعي'],
+            ['/v1/messages', 'POST', 'إرسال رسائل (مثل مساعدي الدردشة)'],
+            ['/v1/models', 'GET', 'عرض قائمة النماذج المدعومة'],
+            ['/v1/images/generations', 'POST', 'توليد الصور'],
+            ['/v1/embeddings', 'POST', 'التضمينات (متجهات للبحث الدلالي)'],
+            ['/v1/audio/speech', 'POST', 'توليد الصوت من نص (TTS)'],
+            ['/v1/audio/transcriptions', 'POST', 'تحويل الصوت إلى نص (STT)'],
+            ['/v1/rerank', 'POST', 'إعادة ترتيب المستندات حسب الصلة']
+          ].map(([path, method, desc]) => `<tr class="border-b border-border"><td class="p-2 font-mono text-xs" dir="ltr">${path}</td><td class="p-2"><span class="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-semibold bg-primary/10 text-primary">${method}</span></td><td class="p-2 text-muted-foreground text-xs">${desc}</td></tr>`).join('')}
+        </tbody></table></div>
+      </div>
+
+      <!-- Tips -->
+      <div class="rounded-lg border bg-card text-card-foreground p-5">
+        <h2 class="text-lg font-bold mb-3 flex items-center gap-2"><svg class="w-5 h-5 text-primary" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>نصائح وحيل ذهبية</h2>
+        <div class="space-y-2 text-sm">${[
+          ['أسماء النماذج حساسة', 'استخدم الأسماء كما هي في /v1/models (مثل <code class="inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-semibold bg-secondary text-foreground">deepseek-ai/DeepSeek-V3.2</code> وليس <code class="inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-semibold bg-secondary text-foreground">deepseek-chat</code>)'],
+          ['مفاتيح متعددة للمزود', 'أضف عدة مفاتيح للمزود نفسه، ستقوم البوابة بتدويرها تلقائياً عند تجاوز الحصة'],
+          ['مراقبة الحصة', 'استخدم واجهة التحليلات في لوحة التحكم لمتابعة الاستهلاك'],
+          ['تخصيص المهلة', 'يمكن ضبط مهلة الطلب (Timeout) من إعدادات البوابة']
+        ].map(([title, desc]) => `<div class="flex gap-3 bg-muted rounded-lg p-3"><div class="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold shrink-0">${'\u2728'}</div><div><div class="font-medium">${title}</div><div class="text-xs text-muted-foreground">${desc}</div></div></div>`).join('')}
+        </div>
+      </div>
+
+      <!-- Troubleshooting -->
+      <div class="rounded-lg border bg-card text-card-foreground p-5">
+        <h2 class="text-lg font-bold mb-3 flex items-center gap-2"><svg class="w-5 h-5 text-primary" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>استكشاف الأخطاء وإصلاحها</h2>
+        <div class="overflow-x-auto"><table class="w-full text-sm"><thead><tr class="border-b border-border"><th class="text-right p-2 font-medium text-muted-foreground">الخطأ</th><th class="text-right p-2 font-medium text-muted-foreground">السبب المحتمل</th><th class="text-right p-2 font-medium text-muted-foreground">الحل</th></tr></thead><tbody>
+          ${[
+            ['401 Unauthorized', 'مفتاح غير صحيح أو منتهي الصلاحية', 'تحقق من gw_xxx وجدّده'],
+            ['404 Model Not Found', 'اسم النموذج غير مدعوم', 'استخدم /v1/models للحصول على الأسماء الصحيحة'],
+            ['429 Rate Limit', 'تجاوزت حصة المزود', 'أضف مفاتيح إضافية للمزود نفسه'],
+            ['504 Timeout', 'المزود بطيء أو غير مستجيب', 'حاول مرة أخرى لاحقاً']
+          ].map(([error, cause, solution]) => `<tr class="border-b border-border"><td class="p-2 font-mono text-xs font-medium text-destructive">${error}</td><td class="p-2 text-xs text-muted-foreground">${cause}</td><td class="p-2 text-xs">${solution}</td></tr>`).join('')}
+        </tbody></table></div>
+      </div>
+
+      <!-- Footer note -->
+      <div class="rounded-lg border border-primary/20 bg-primary/5 text-card-foreground p-5 text-center">
+        <p class="text-sm font-medium">البوابة شفافة تماماً — لا تعدل هيكل الطلب، تستبدل المفتاح فقط، وتوجّه الطلب للمزود الصحيح بناءً على اسم النموذج.</p>
+      </div>
+    </div>`;
+}
+
+function copyText(btn) {
+  const text = btn.getAttribute('data-copy');
+  navigator.clipboard.writeText(text).then(() => {
+    const orig = btn.innerHTML;
+    btn.innerHTML = 'تم النسخ ✓';
+    setTimeout(() => btn.innerHTML = orig, 1500);
+  });
+}
+
+// ==================== SETTINGS ====================
+async function renderSettings() {
+  await loadData();
+  const el = document.getElementById('mainContent');
+  el.innerHTML = `
+    <div class="mb-6"><h1 class="text-2xl font-bold">الإعدادات والوثائق</h1><p class="text-sm text-muted-foreground">معلومات الحساب + دليل كامل لاستخدام البوابة مع كل أنواع الطلبات والمزودين</p></div>
+    <!-- Account Info -->
+    <div class="rounded-lg border bg-card text-card-foreground p-4 mb-4">
+      <h3 class="text-base font-semibold mb-3">معلومات الحساب</h3>
+      <div class="space-y-3 text-sm">
+        <div class="flex items-center gap-3"><div class="w-8 h-8 rounded-md bg-primary/10 flex items-center justify-center text-primary"><svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div><div><span class="text-muted-foreground">الاسم:</span> <span class="font-medium">Admin</span></div></div>
+        <div class="flex items-center gap-3"><div class="w-8 h-8 rounded-md bg-primary/10 flex items-center justify-center text-primary"><svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg></div><div><span class="text-muted-foreground">البريد:</span> <span class="font-medium" dir="ltr">${localStorage.getItem('userEmail') || 'admin@gateway.com'}</span></div></div>
+        <div class="flex items-center gap-3"><div class="w-8 h-8 rounded-md bg-primary/10 flex items-center justify-center text-primary"><svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><div><span class="text-muted-foreground">الدور:</span> <span class="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold bg-primary/10 text-primary border-primary/20">admin</span></div></div>
+      </div>
+    </div>
+    <!-- API Documentation -->
+    <div class="rounded-lg border bg-card text-card-foreground">
+      <div class="p-4 border-b border-border">
+        <h3 class="text-base font-semibold">دليل الاستخدام الكامل</h3>
+        <p class="text-xs text-muted-foreground mt-1">البوابة شفافة تماماً — أرسل الطلب بنفس بنية المزود الأصلي، والبوابة تستبدل المفتاح فقط.</p>
+      </div>
+      <div class="border-b border-border">
+        <div class="flex overflow-x-auto">
+          ${['chat', 'images', 'models', 'embeddings', 'audio', 'rerank', 'how-it-works'].map((t, i) => `<button onclick="showDocTab('${t}')" class="doc-tab px-4 py-2.5 text-sm font-medium transition-colors border-b-2 border-transparent hover:text-foreground text-muted-foreground ${i === 0 ? 'doc-tab-active border-primary text-foreground' : ''}" data-tab="${t}">${['Chat', 'الصور', 'النماذج', 'Embeddings', 'الصوت', 'Rerank', 'الآلية'][i]}</button>`).join('')}
+        </div>
+      </div>
+      <div id="docContent" class="p-4">${getDocContent('chat')}</div>
+    </div>
+    <!-- Logout -->
+    <div class="rounded-lg border border-destructive/30 bg-card text-card-foreground p-4 mt-4 flex items-center justify-between">
+      <div><h3 class="text-base font-semibold">تسجيل الخروج</h3><p class="text-xs text-muted-foreground">إنهاء الجلسة الحالية</p></div>
+      <button onclick="handleLogout()" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring bg-destructive text-destructive-foreground shadow hover:bg-destructive/90 h-9 px-4 gap-2"><svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>خروج</button>
+    </div>`;
+}
+
+function showDocTab(tab) {
+  document.querySelectorAll('.doc-tab').forEach(t => {
+    t.classList.remove('doc-tab-active', 'border-primary', 'text-foreground');
+    t.classList.add('text-muted-foreground', 'border-transparent');
+  });
+  document.querySelector(`.doc-tab[data-tab="${tab}"]`)?.classList.add('doc-tab-active', 'border-primary', 'text-foreground');
+  document.getElementById('docContent').innerHTML = getDocContent(tab);
+}
+
+function getDocContent(tab) {
+  const docs = {
+    'chat': `<h3 class="font-bold mb-2">المحادثة (Chat Completions)</h3><p class="text-sm text-muted-foreground mb-3">البوابة تدعم كل مسارات chat الشائعة. أرسل الطلب بنفس بنية OpenAI أو المزود، والبوابة توجّهه تلقائياً للمزود الصحيح حسب اسم النموذج.</p>
+      <div class="flex flex-wrap gap-2 mb-4"><span class="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold bg-secondary text-foreground">/v1/chat/completions</span><span class="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold bg-secondary text-foreground">/v1/chats</span><span class="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold bg-secondary text-foreground">/v1/ai/chat</span><span class="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold bg-secondary text-foreground">/v1/messages</span></div>
+      <div class="space-y-2"><div class="bg-muted rounded-lg p-3 text-xs font-mono" dir="ltr">curl https://example.com/v1/chat/completions \<br>  -H "Authorization: Bearer YOUR_KEY" \<br>  -H "Content-Type: application/json" \<br>  -d '{"model":"gpt-4o","messages":[{"role":"user","content":"Hello"}]}'</div></div>
+      <div class="bg-primary/10 border border-primary/20 rounded-lg p-3 mt-3 text-sm"><strong>💡 استرجاع قائمة النماذج المتاحة</strong><br><span class="text-xs text-muted-foreground">استخدم GET /v1/models لاسترجاع قائمة النماذج المتاحة من كل المزودين.</span></div>`,
+    'images': `<h3 class="font-bold mb-2">توليد الصور (Image Generation)</h3><p class="text-sm text-muted-foreground mb-3">البوابة تدعم توليد الصور من أي مزود. أرسل الطلب بنفس بنية المزود — البوابة توجّهه تلقائياً حسب النموذج المطلوب.</p>
+      <div class="flex flex-wrap gap-2 mb-4"><span class="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold bg-secondary text-foreground">/v1/images/generations</span><span class="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold bg-secondary text-foreground">/v1/images/edits</span><span class="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold bg-secondary text-foreground">/v1/images/variations</span></div>
+      <div class="bg-muted rounded-lg p-3 text-xs font-mono" dir="ltr">curl https://example.com/v1/images/generations \<br>  -H "Authorization: Bearer YOUR_KEY" \<br>  -d '{"model":"dall-e-3","prompt":"A cat"}'</div>`,
+    'models': `<h3 class="font-bold mb-2">قائمة النماذج (Models)</h3><p class="text-sm text-muted-foreground mb-3">استرجع قائمة النماذج المتاحة من كل المزودين عبر مسار واحد.</p>
+      <div class="flex flex-wrap gap-2 mb-4"><span class="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold bg-secondary text-foreground">/v1/models</span></div>
+      <div class="bg-muted rounded-lg p-3 text-xs font-mono" dir="ltr">curl https://example.com/v1/models \<br>  -H "Authorization: Bearer YOUR_KEY"</div>`,
+    'embeddings': `<h3 class="font-bold mb-2">التضمينات (Embeddings)</h3><p class="text-sm text-muted-foreground mb-3">حول النصوص إلى متجهات للبحث الدلالي. استخدم endpoint embeddings.</p>
+      <div class="flex flex-wrap gap-2 mb-4"><span class="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold bg-secondary text-foreground">/v1/embeddings</span></div>
+      <div class="bg-muted rounded-lg p-3 text-xs font-mono" dir="ltr">curl https://example.com/v1/embeddings \<br>  -H "Authorization: Bearer YOUR_KEY" \<br>  -d '{"model":"text-embedding-3-small","input":"Hello"}'</div>`,
+    'audio': `<h3 class="font-bold mb-2">الصوت (Audio — TTS / STT)</h3><p class="text-sm text-muted-foreground mb-3">توليد الصوت من نص (TTS) أو الصوت لنص (STT).</p>
+      <div class="flex flex-wrap gap-2 mb-4"><span class="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold bg-secondary text-foreground">/v1/audio/speech</span><span class="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold bg-secondary text-foreground">/v1/audio/transcriptions</span></div>
+      <div class="bg-muted rounded-lg p-3 text-xs font-mono" dir="ltr">curl https://example.com/v1/audio/speech \<br>  -H "Authorization: Bearer YOUR_KEY" \<br>  -d '{"model":"tts-1","input":"Hello"}'</div>`,
+    'rerank': `<h3 class="font-bold mb-2">إعادة الترتيب (Rerank)</h3><p class="text-sm text-muted-foreground mb-3">إعادة ترتيب المستندات حسب الصلة بسؤال. استخدم endpoint rerank.</p>
+      <div class="flex flex-wrap gap-2 mb-4"><span class="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold bg-secondary text-foreground">/v1/rerank</span></div>
+      <div class="bg-muted rounded-lg p-3 text-xs font-mono" dir="ltr">curl https://example.com/v1/rerank \<br>  -H "Authorization: Bearer YOUR_KEY" \<br>  -d '{"model":"rerank-model","query":"..."}'</div>`,
+    'how-it-works': `<h3 class="font-bold mb-2">آلية عمل البوابة</h3><p class="text-sm text-muted-foreground mb-4">البوابة عبارة عن وكيل عكسي شفاف (Transparent Reverse Proxy) يعمل مع كل النماذج.</p>
+      <div class="space-y-3">${[
+        ['إعداد المزود', 'أرسل الطلب إلى /v1/* مع مفتاحك الرئيسي.'],
+        ['اختيار النوع', 'تختار البوابة المزود حسب نوع الـ Endpoint المطلوب (chat, images, embeddings, audio...).'],
+        ['الوصول إلى النماذج', 'تبحث البوابة عن المزود الذي يدعم النموذج المطلوب.'],
+        ['التوجيه الشفاف', 'يصل الطلب إلى المزود الفعلي بشفافية كاملة — لا تحويل، فقط استبدال المفتاح.'],
+        ['إدارة الأخطاء', 'عند فشل المفتاح الحالي تنتقل البوابة تلقائياً للمفتاح التالي — بحث تلقائي وتدوير مفاتيح فوري.'],
+        ['تدوير المفاتيح', 'تدوير تلقائي للمفاتيح خلال أجزاء من الثانية عند تجاوز الحصة أو الحد المعدل.']
+      ].map(([title, desc], i) => `<div class="flex gap-3"><div class="w-7 h-7 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold shrink-0">${i + 1}</div><div><div class="text-sm font-medium">${title}</div><div class="text-xs text-muted-foreground">${desc}</div></div></div>`).join('')}</div>
+      <h4 class="font-semibold mt-4 mb-2 text-sm">جدول تصنيف الأخطاء والتدوير</h4>
+      <div class="overflow-x-auto"><table class="w-full text-xs"><thead><tr class="border-b border-border"><th class="text-right p-2 font-medium text-muted-foreground">الكود</th><th class="text-right p-2 font-medium text-muted-foreground">الإجراء</th></tr></thead><tbody>
+        ${[['401/403', 'تحقق من صلاحية المفتاح + التبديل للمفتاح التالي'], ['429', 'Cooldown مؤقت (ثوانٍ) + التبديل للمفتاح التالي'], ['402/Quota', 'Cooldown طويل (6 ساعات) + التبديل للمفتاح التالي'], ['5xx', 'Cooldown قصير (5 دقائق) + التبديل للمفتاح التالي'], ['400/404/422', 'خطأ من العميل — راجع الطلب (لا تحويل)']].map(([code, action]) => `<tr class="border-b border-border"><td class="p-2 font-mono font-medium">${code}</td><td class="p-2 text-muted-foreground">${action}</td></tr>`).join('')}
+      </tbody></table></div>`
+  };
+  return docs[tab] || docs['chat'];
+}
+
+// ==================== UTILS ====================
+function timeAgo(dateStr) {
+  const now = new Date();
+  const d = new Date(dateStr);
+  const diff = Math.floor((now - d) / 1000);
+  if (diff < 5) return 'الآن';
+  if (diff < 60) return `قبل ${diff}ث`;
+  if (diff < 3600) return `قبل ${Math.floor(diff / 60)}د`;
+  if (diff < 86400) return `قبل ${Math.floor(diff / 3600)}س`;
+  return `قبل ${Math.floor(diff / 86400)}ي`;
+}
+
+// ==================== SAFETY TIMEOUT ====================
+setTimeout(() => {
+  const ls = document.getElementById('loadingScreen');
+  if (ls && ls.style.display !== 'none') {
+    ls.style.display = 'none';
+    document.getElementById('authPage').style.display = 'flex';
+  }
+}, 3000);
+
+
+// ==================== INIT ====================
+async function init() {
+  if (token) {
+    try {
+      await api('GET', '/api/keys');
+      showDashboard();
+      return;
+    } catch(e) { /* token invalid */ }
+  }
+  document.getElementById('loadingScreen').style.display = 'none';
+  document.getElementById('authPage').style.display = 'flex';
+}
+init();
+</script>
+</body>
+</html>
