@@ -9,7 +9,7 @@ from datetime import datetime
 from src.config import settings
 from src.database import get_db, engine, Base, APIKey, RequestLog
 from src.proxy import AIGatewayProxy
-from src.key_manager import KeyManager
+from src.key_manager import KeyManager, generate_gateway_key, validate_gateway_key
 from src.models import KeyCreate, KeyResponse, Provider
 from src.auth import verify_token, create_access_token, verify_token_optional
 from src.rate_limiter import rate_limiter
@@ -125,6 +125,51 @@ async def delete_key(
         raise HTTPException(404, f"Key {key_id} not found")
     logger.info(f"Key {key_id} deactivated by {user.get('sub')}")
     return {"message": f"Key {key_id} deactivated successfully"}
+
+
+# ==================== Key Generation (FlatKey) ====================
+@app.get("/api/flatkey/keys/generate")
+async def generate_key_endpoint():
+    """توليد مفتاح بتنسيق gw_xxxxxx_xxxx_xxxxxxxxxxxxxxxxxxxxxxxx"""
+    new_key = generate_gateway_key()
+    return {
+        "key": new_key,
+        "format": "gw_xxxxxx_xxxx_xxxxxxxxxxxxxxxxxxxxxxxx",
+        "length": len(new_key)
+    }
+
+
+@app.post("/api/flatkey/keys/generate-and-save")
+async def generate_and_save_key(body: dict, db: Session = Depends(get_db), user=Depends(verify_token)):
+    """توليد مفتاح وحفظه مباشرة"""
+    name = body.get("name", "")
+    provider = body.get("provider", "openai")
+    if not name:
+        raise HTTPException(400, "الاسم مطلوب")
+
+    new_key_value = generate_gateway_key()
+    key_manager = KeyManager(db)
+    new_key = key_manager.add_key(name=name, provider=provider, key=new_key_value)
+    logger.info(f"Generated gateway key '{name}' for {provider} by {user.get('sub')}")
+    return {
+        "id": new_key.id,
+        "key": new_key_value,
+        "name": name,
+        "provider": provider,
+        "message": "✅ تم توليد وحفظ المفتاح بنجاح"
+    }
+
+
+@app.post("/api/flatkey/keys/validate")
+async def validate_key_endpoint(body: dict):
+    """التحقق من صحة تنسيق المفتاح"""
+    key = body.get("key", "")
+    is_valid = validate_gateway_key(key)
+    return {
+        "key": key,
+        "is_valid": is_valid,
+        "message": "✅ تنسيق صحيح" if is_valid else "❌ تنسيق غير صحيح"
+    }
 
 
 # ==================== Auth alias ====================

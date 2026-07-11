@@ -699,24 +699,67 @@ function keyStatusBadge(k) {
 }
 
 function showCreateKeyDialog() {
+  const provOpts = providers.map(p => `<option value="${p.name}">${p.name}</option>`).join('');
   openDialog(`
     <div class="p-6 space-y-4">
-      <div><h2 class="text-lg font-bold">إنشاء مفتاح رئيسي جديد</h2><p class="text-sm text-muted-foreground">أدخل اسمًا تعريفيًا للمفتاح.</p></div>
-      <div class="space-y-2"><label class="text-sm font-medium">اسم المفتاح</label><input id="newKeyName" class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm" placeholder="مثال: تطبيق الإنتاج"/></div>
+      <div><h2 class="text-lg font-bold">إنشاء مفتاح جديد</h2><p class="text-sm text-muted-foreground">التنسيق: <code class="inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-semibold bg-secondary text-foreground font-mono" dir="ltr">gw_xxxxxx_xxxx_xxxxxxxxxxxxxxxxxxxxxxxx</code></p></div>
+      <div class="space-y-3">
+        <div class="space-y-1"><label class="text-sm font-medium">اسم المفتاح</label><input id="newKeyName" class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm" placeholder="مثال: مفتاح OpenAI الأساسي"/></div>
+        <div class="space-y-1"><label class="text-sm font-medium">المزود</label><select id="newKeyProvider" class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"><option value="">اختر مزوداً</option>${provOpts}</select></div>
+        <div class="space-y-1">
+          <label class="text-sm font-medium">المفتاح</label>
+          <div class="flex gap-2">
+            <input id="newKeyValue" class="flex h-9 flex-1 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm font-mono text-xs" placeholder="اضغط توليد أو أدخل يدوياً" dir="ltr"/>
+            <button onclick="generateKeyValue()" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-xs font-medium transition-colors border border-border bg-background shadow-sm hover:bg-accent h-9 px-3 gap-1"><svg class="w-3.5 h-3.5" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>توليد</button>
+            <button onclick="copyKeyValue()" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-xs font-medium transition-colors border border-border bg-background shadow-sm hover:bg-accent h-9 px-3 gap-1"><svg class="w-3.5 h-3.5" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>نسخ</button>
+          </div>
+        </div>
+      </div>
       <div class="flex gap-2 justify-end pt-2">
-        <button onclick="closeDialog()" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring border border-border bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-9 px-4">إلغاء</button>
-        <button onclick="createKey()" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 px-4">إنشاء</button>
+        <button onclick="closeDialog()" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring border border-border bg-background shadow-sm hover:bg-accent h-9 px-4">إلغاء</button>
+        <button onclick="createKey()" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 px-4 gap-2"><svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>إنشاء</button>
+        <button onclick="generateAndSaveKey()" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring bg-success text-success-foreground shadow hover:bg-success/90 h-9 px-4 gap-2"><svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>⚡ توليد وحفظ</button>
       </div>
     </div>`);
 }
 
+async function generateKeyValue() {
+  try {
+    const data = await api('GET', '/api/flatkey/keys/generate');
+    document.getElementById('newKeyValue').value = data.key;
+    toast(`✅ تم توليد مفتاح — ${data.key.substring(0, 16)}...`, 'success');
+  } catch(e) { toast(e.message, 'error'); }
+}
+
+function copyKeyValue() {
+  const el = document.getElementById('newKeyValue');
+  el.select();
+  navigator.clipboard.writeText(el.value).then(() => toast('📋 تم نسخ المفتاح', 'info'));
+}
+
 async function createKey() {
   const name = document.getElementById('newKeyName').value;
+  const provider = document.getElementById('newKeyProvider').value || 'openai';
+  let keyValue = document.getElementById('newKeyValue').value;
+  if (!name) { toast('يرجى إدخال اسم المفتاح', 'error'); return; }
+  if (!keyValue) { keyValue = 'gw_' + Math.random().toString(36).substring(2, 8) + '_' + Math.random().toString(36).substring(2, 6) + '_' + Math.random().toString(36).substring(2, 26).replace(/\./g, ''); }
+  try {
+    await api('POST', '/api/keys', { name, provider, key: keyValue });
+    closeDialog();
+    toast('✅ تم إنشاء المفتاح', 'success');
+    renderPage('master-keys');
+  } catch(e) { toast(e.message, 'error'); }
+}
+
+async function generateAndSaveKey() {
+  const name = document.getElementById('newKeyName').value;
+  const provider = document.getElementById('newKeyProvider').value || 'openai';
   if (!name) { toast('يرجى إدخال اسم المفتاح', 'error'); return; }
   try {
-    const data = await api('POST', '/api/keys', { name, provider: 'openai', key: 'sk-' + Math.random().toString(36).substring(2) });
+    const data = await api('POST', '/api/flatkey/keys/generate-and-save', { name, provider });
+    document.getElementById('newKeyValue').value = data.key;
+    toast(`✅ تم توليد وحفظ المفتاح: ${data.key.substring(0, 20)}...`, 'success');
     closeDialog();
-    toast('تم إنشاء المفتاح الرئيسي', 'success');
     renderPage('master-keys');
   } catch(e) { toast(e.message, 'error'); }
 }

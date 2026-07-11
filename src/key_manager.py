@@ -1,3 +1,7 @@
+import secrets
+import string
+import re
+import hashlib
 from cryptography.fernet import Fernet
 from sqlalchemy.orm import Session
 from typing import Optional
@@ -5,6 +9,19 @@ from datetime import datetime
 
 from src.config import settings
 from src.database import APIKey, get_db
+
+
+def generate_gateway_key() -> str:
+    """توليد مفتاح بتنسيق gw_xxxxxx_xxxx_xxxxxxxxxxxxxxxxxxxxxxxx"""
+    part1 = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(6))
+    part2 = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(4))
+    part3 = ''.join(secrets.choice(string.ascii_letters + string.digits + '_-') for _ in range(24))
+    return f"gw_{part1}_{part2}_{part3}"
+
+
+def validate_gateway_key(key: str) -> bool:
+    """التحقق من صحة تنسيق المفتاح gw_"""
+    return bool(re.match(r'^gw_[A-Za-z0-9]{6}_[A-Za-z0-9]{4}_[A-Za-z0-9_\-]{24}$', key))
 
 _encryption_key = settings.ENCRYPTION_KEY or Fernet.generate_key().decode()
 cipher = Fernet(_encryption_key)
