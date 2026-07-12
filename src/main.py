@@ -10,7 +10,7 @@ from src.config import settings
 from src.database import get_db, engine, Base, APIKey, RequestLog
 from src.proxy import AIGatewayProxy
 from src.key_manager import KeyManager, generate_gateway_key, validate_gateway_key
-from src.algorithms import ALGORITHMS_LIST, ALGORITHM_PARAMS, run_algorithm
+from src.algorithms import ALGORITHMS_LIST, ALGORITHM_PARAMS, CATEGORIES, run_algorithm
 from src.models import KeyCreate, KeyResponse, Provider
 from src.auth import verify_token, create_access_token, verify_token_optional
 from src.rate_limiter import rate_limiter
@@ -176,7 +176,11 @@ async def validate_key_endpoint(body: dict):
 # ==================== Algorithms Generator ====================
 @app.get("/api/algorithms/list")
 async def list_algorithms():
-    return {"algorithms": ALGORITHMS_LIST, "total": len(ALGORITHMS_LIST), "params": ALGORITHM_PARAMS}
+    return {"algorithms": ALGORITHMS_LIST, "total": len(ALGORITHMS_LIST), "params": ALGORITHM_PARAMS, "categories": CATEGORIES}
+
+@app.get("/api/algorithms/categories")
+async def list_categories():
+    return {"categories": CATEGORIES}
 
 @app.post("/api/algorithms/generate")
 async def generate_algorithm(body: dict):
