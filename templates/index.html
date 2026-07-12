@@ -662,33 +662,52 @@ async function renderMasterKeys() {
   const el = document.getElementById('mainContent');
   el.innerHTML = `
     <div class="flex items-center justify-between mb-6">
-      <div><h1 class="text-2xl font-bold">المفاتيح الرئيسية</h1><p class="text-sm text-muted-foreground">استخدم هذه المفاتيح داخل تطبيقاتك للوصول إلى البوابة</p></div>
-      <button onclick="showCreateKeyDialog()" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 px-4 py-2 gap-2"><svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>إنشاء مفتاح</button>
+      <div><h1 class="text-2xl font-bold">المفاتيح</h1><p class="text-sm text-muted-foreground">إدارة مفاتيح API للوصول إلى البوابة</p></div>
+      <button onclick="showCreateKeyDialog()" class="inline-flex items-center justify-center whitespace-nowrap rounded-xl text-sm font-semibold transition-all duration-200 bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-xl hover:bg-primary/90 h-10 px-5 gap-2"><svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>إنشاء مفتاح</button>
     </div>
-    <div class="rounded-lg border border-amber-500/20 bg-amber-500/5 p-3 mb-4 flex items-start gap-3">
-      <svg class="w-5 h-5 text-amber-500 mt-0.5 shrink-0" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-      <div><p class="text-sm font-medium">طريقة الاستخدام</p><p class="text-xs text-muted-foreground">أرسل طلباتك إلى /v1/chat/completions مع الترويسة Authorization: Bearer YOUR_MASTER_KEY. تعمل البوابة كوكيل شفاف وتعيد الرد كما هو.</p></div>
-    </div>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      ${masterKeys.length ? masterKeys.map(k => `
-        <div class="rounded-lg border bg-card text-card-foreground p-4">
-          <div class="flex items-start justify-between mb-3">
-            <div class="flex items-center gap-3">
-              <div class="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center text-primary"><svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="15" r="4"/><line x1="10.85" x2="21" y1="12.15" y2="3"/><line x1="19" x2="21" y1="5" y2="3"/><line x1="17" x2="19" y1="7" y2="5"/></svg></div>
-              <div><div class="font-medium">${k.name}</div><div class="text-xs text-muted-foreground font-mono" dir="ltr">${k.keyPreview || k.key?.substring(0, 12) + '...' || k.id}</div></div>
-            </div>
-            ${keyStatusBadge(k)}
-          </div>
-          <div class="grid grid-cols-2 gap-2 mb-3 text-center text-xs">
-            <div><div class="font-semibold text-sm">${k._count?.requestLogs || k.usage_count || 0}</div><div class="text-muted-foreground">الطلبات</div></div>
-            <div><div class="font-semibold text-sm">${k.lastUsedAt ? timeAgo(k.lastUsedAt) : '—'}</div><div class="text-muted-foreground">آخر استخدام</div></div>
-          </div>
-          <div class="flex gap-2">
-            <button onclick="toggleKeyStatus('${k.id}')" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring border border-border bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-7 px-2.5">${k.isActive !== false ? 'تعطيل' : 'تفعيل'}</button>
-            <button onclick="deleteKey('${k.id}')" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring border border-destructive/50 text-destructive bg-background shadow-sm hover:bg-destructive/10 h-7 px-2.5"><svg class="w-3 h-3 ml-1" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>حذف</button>
-          </div>
-        </div>`) : `<div class="col-span-full flex flex-col items-center gap-2 py-16 text-center"><svg class="w-12 h-12 text-muted-foreground/40" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="15" r="4"/><line x1="10.85" x2="21" y1="12.15" y2="3"/><line x1="19" x2="21" y1="5" y2="3"/><line x1="17" x2="19" y1="7" y2="5"/></svg><p class="text-sm text-muted-foreground">لا توجد مفاتيح رئيسية</p><p class="text-xs text-muted-foreground">أنشئ مفتاحك الأول لبدء استخدام البوابة من تطبيقاتك.</p></div>`}
-    </div>`;
+    ${masterKeys.length ? `
+    <div class="rounded-2xl border border-border overflow-hidden">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-border bg-muted/50">
+            <th class="text-right p-4 font-medium text-xs text-muted-foreground">الاسم</th>
+            <th class="text-right p-4 font-medium text-xs text-muted-foreground">المفتاح</th>
+            <th class="text-right p-4 font-medium text-xs text-muted-foreground">المزود</th>
+            <th class="text-right p-4 font-medium text-xs text-muted-foreground">الاستخدام</th>
+            <th class="text-right p-4 font-medium text-xs text-muted-foreground">آخر استخدام</th>
+            <th class="text-right p-4 font-medium text-xs text-muted-foreground">الحالة</th>
+            <th class="text-right p-4 font-medium text-xs text-muted-foreground"></th>
+          </tr>
+        </thead>
+        <tbody>
+          ${masterKeys.map(k => `
+            <tr class="border-b border-border hover:bg-muted/30 transition-colors">
+              <td class="p-4">
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0"><svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="15" r="4"/><line x1="10.85" x2="21" y1="12.15" y2="3"/><line x1="19" x2="21" y1="5" y2="3"/><line x1="17" x2="19" y1="7" y2="5"/></svg></div>
+                  <div class="font-medium">${k.name}</div>
+                </div>
+              </td>
+              <td class="p-4 font-mono text-xs text-muted-foreground" dir="ltr">${k.keyPreview || k.key?.substring(0, 16) + '...' || k.id}</td>
+              <td class="p-4">${k.provider}</td>
+              <td class="p-4 font-mono text-xs">${k.usage_count || 0}</td>
+              <td class="p-4 text-xs text-muted-foreground">${k.lastUsedAt ? timeAgo(k.lastUsedAt) : '—'}</td>
+              <td class="p-4">${k.isActive !== false ? '<span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[10px] font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/20"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>نشط</span>' : '<span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[10px] font-semibold bg-secondary text-muted-foreground border border-border"><span class="w-1.5 h-1.5 rounded-full bg-muted-foreground"></span>معطّل</span>'}</td>
+              <td class="p-4">
+                <div class="flex gap-1">
+                  <button onclick="toggleKeyStatus('${k.id}')" class="inline-flex items-center justify-center whitespace-nowrap rounded-lg text-xs font-medium transition-colors border border-border bg-background shadow-sm hover:bg-accent h-7 px-2.5">${k.isActive !== false ? 'تعطيل' : 'تفعيل'}</button>
+                  <button onclick="deleteKey('${k.id}')" class="inline-flex items-center justify-center whitespace-nowrap rounded-lg text-xs font-medium transition-colors border border-destructive/50 text-destructive bg-background shadow-sm hover:bg-destructive/10 h-7 px-2.5"><svg class="w-3 h-3" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg></button>
+                </div>
+              </td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>` : `
+    <div class="rounded-2xl border-2 border-dashed border-border bg-muted/20 flex flex-col items-center gap-3 py-20 text-center">
+      <div class="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary"><svg class="w-8 h-8" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="15" r="4"/><line x1="10.85" x2="21" y1="12.15" y2="3"/><line x1="19" x2="21" y1="5" y2="3"/><line x1="17" x2="19" y1="7" y2="5"/></svg></div>
+      <div><p class="text-lg font-semibold">لا توجد مفاتيح</p><p class="text-sm text-muted-foreground">أنشئ مفتاحك الأول لبدء استخدام البوابة</p></div>
+      <button onclick="showCreateKeyDialog()" class="inline-flex items-center justify-center whitespace-nowrap rounded-xl text-sm font-semibold transition-all duration-200 bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-xl hover:bg-primary/90 h-10 px-5 gap-2"><svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>إنشاء مفتاح</button>
+    </div>`}`;
 }
 
 function keyStatusBadge(k) {
