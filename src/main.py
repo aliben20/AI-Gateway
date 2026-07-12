@@ -224,7 +224,7 @@ def _build_providers():
     return [
         {
             "id": str(i + 1), "name": PROVIDER_NAMES.get(k, k.title()),
-            "baseUrl": cfg.get("api_base", ""), "isActive": True,
+            "baseUrl": cfg.get("api_base", ""), "isActive": False,
             "priority": 0, "color": PROVIDER_COLORS.get(k, "#6366f1"),
             "authHeader": "Authorization", "tokenFormat": "Bearer Token",
             "protocol": "Transparent",
