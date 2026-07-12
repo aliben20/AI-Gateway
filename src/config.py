@@ -21,6 +21,10 @@ class Settings(BaseSettings):
         "google": {
             "api_base": "https://generativelanguage.googleapis.com/v1",
             "models": ["gemini-pro"]
+        },
+        "flatkey": {
+            "api_base": "https://console.flatkey.ai/v1",
+            "models": ["gpt-5.6-sol", "gpt-4", "gpt-3.5-turbo"]
         }
     }
 

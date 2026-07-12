@@ -28,6 +28,27 @@ app = FastAPI(
     version="1.0.0"
 )
 
+@app.on_event("startup")
+async def seed_initial_data():
+    try:
+        from src.database import SessionLocal, APIKey
+        db = SessionLocal()
+        existing = db.query(APIKey).filter(APIKey.provider == "flatkey").first()
+        if not existing:
+            key = APIKey(
+                name="FlatKey Main",
+                provider="flatkey",
+                key="sk-QrkSeNQUTBfr7a3oiS7QutYsQHTqwNmuTmaH6QU6baufuz15",
+                is_active=True,
+                usage_count=0
+            )
+            db.add(key)
+            db.commit()
+            logger.info("Seeded FlatKey API key")
+        db.close()
+    except Exception as e:
+        logger.warning(f"Could not seed FlatKey key: {e}")
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
