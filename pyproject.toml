@@ -13,6 +13,17 @@ dependencies = [
     "python-jose==3.3.0",
     "sqlalchemy==2.0.36",
     "cryptography==43.0.3",
+    "bcrypt",
+    "argon2-cffi",
+    "pycryptodome",
+    "rsa",
+    "pyjwt",
+    "pyotp",
+    "base58",
+    "brotli",
+    "zstandard",
+    "bson",
+    "toml",
 ]
 
 [tool.vercel]
